@@ -2,7 +2,7 @@
   "node_version": "20",
   "graphs": {
     "retrieval_graph": "./src/retrieval_graph/graph.ts:graph",
-    "indexer": "./src/retrieval_graph/index_graph.ts:graph"
+    "indexer": "./src/index_graph/graph.ts:graph"
   },
   "env": ".env"
 }
