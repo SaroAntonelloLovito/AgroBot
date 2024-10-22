@@ -40,15 +40,15 @@ export const BaseConfigurationAnnotation = Annotation.Root({
  * @returns An instance of typeof BaseConfigurationAnnotation.State with the specified configuration.
  */
 export function ensureBaseConfiguration(
-    config: RunnableConfig | undefined = undefined,
-  ): typeof BaseConfigurationAnnotation.State {
-    const configurable = (config?.configurable || {}) as Partial<
-      typeof BaseConfigurationAnnotation.State
-    >;
-    return {
-      embeddingModel:
-        configurable.embeddingModel || "openai/text-embedding-3-small",
-      retrieverProvider: configurable.retrieverProvider || "elastic-local",
-      searchKwargs: configurable.searchKwargs || {},
-    };
-  }
+  config: RunnableConfig | undefined = undefined,
+): typeof BaseConfigurationAnnotation.State {
+  const configurable = (config?.configurable || {}) as Partial<
+    typeof BaseConfigurationAnnotation.State
+  >;
+  return {
+    embeddingModel:
+      configurable.embeddingModel || "openai/text-embedding-3-small",
+    retrieverProvider: configurable.retrieverProvider || "elastic-local",
+    searchKwargs: configurable.searchKwargs || {},
+  };
+}

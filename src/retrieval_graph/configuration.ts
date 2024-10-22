@@ -7,9 +7,12 @@ import {
   GENERAL_SYSTEM_PROMPT,
   RESEARCH_PLAN_SYSTEM_PROMPT,
   GENERATE_QUERIES_SYSTEM_PROMPT,
-  RESPONSE_SYSTEM_PROMPT
+  RESPONSE_SYSTEM_PROMPT,
 } from "./prompts.js";
-import { BaseConfigurationAnnotation, ensureBaseConfiguration } from "../shared/configuration.js";
+import {
+  BaseConfigurationAnnotation,
+  ensureBaseConfiguration,
+} from "../shared/configuration.js";
 
 /**
  * The configuration for the agent.
@@ -78,12 +81,19 @@ export function ensureAgentConfiguration(
   return {
     ...baseConfig,
     queryModel: configurable.queryModel || "anthropic/claude-3-haiku-20240307",
-    responseModel: configurable.responseModel || "anthropic/claude-3-5-sonnet-20240620",
+    responseModel:
+      configurable.responseModel || "anthropic/claude-3-5-sonnet-20240620",
     routerSystemPrompt: configurable.routerSystemPrompt || ROUTER_SYSTEM_PROMPT,
-    moreInfoSystemPrompt: configurable.moreInfoSystemPrompt || MORE_INFO_SYSTEM_PROMPT,
-    generalSystemPrompt: configurable.generalSystemPrompt || GENERAL_SYSTEM_PROMPT,
-    researchPlanSystemPrompt: configurable.researchPlanSystemPrompt || RESEARCH_PLAN_SYSTEM_PROMPT,
-    generateQueriesSystemPrompt: configurable.generateQueriesSystemPrompt || GENERATE_QUERIES_SYSTEM_PROMPT,
-    responseSystemPrompt: configurable.responseSystemPrompt || RESPONSE_SYSTEM_PROMPT,
+    moreInfoSystemPrompt:
+      configurable.moreInfoSystemPrompt || MORE_INFO_SYSTEM_PROMPT,
+    generalSystemPrompt:
+      configurable.generalSystemPrompt || GENERAL_SYSTEM_PROMPT,
+    researchPlanSystemPrompt:
+      configurable.researchPlanSystemPrompt || RESEARCH_PLAN_SYSTEM_PROMPT,
+    generateQueriesSystemPrompt:
+      configurable.generateQueriesSystemPrompt ||
+      GENERATE_QUERIES_SYSTEM_PROMPT,
+    responseSystemPrompt:
+      configurable.responseSystemPrompt || RESPONSE_SYSTEM_PROMPT,
   };
 }

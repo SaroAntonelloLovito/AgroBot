@@ -9,43 +9,59 @@ import { v4 as uuidv4 } from "uuid";
  * @returns The updated array of documents.
  */
 export function reduceDocs(
-    existing?: Document[],
-    newDocs?:
-      | Document[]
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      | { [key: string]: any }[]
-      | string[]
-      | string
-      | "delete",
-  ) {
-    // Supports deletion by returning an empty array when "delete" is specified
-    if (newDocs === "delete") {
-      return [];
-    }
-    // Supports adding a single string document
-    if (typeof newDocs === "string") {
-      const docId = uuidv4();
-      return [{ pageContent: newDocs, metadata: { id: docId }, id: docId }];
-    }
-    // User can provide "docs" content in a few different ways
-    if (Array.isArray(newDocs)) {
-      const coerced: Document[] = [];
-      for (const item of newDocs) {
-        if (typeof item === "string") {
-          coerced.push({ pageContent: item, metadata: { id: uuidv4() } });
-        } else if (typeof item === "object") {
-          const doc = item as Document;
-          const docId = item?.id || uuidv4();
-          item.id = docId;
-          if (!doc.metadata || !doc.metadata.id) {
-            doc.metadata = doc.metadata || {};
-            doc.metadata.id = docId;
+  existing?: Document[],
+  newDocs?:
+    | Document[]
+    | { [key: string]: any }[]
+    | string[]
+    | string
+    | "delete",
+): Document[] {
+  if (newDocs === "delete") {
+    return [];
+  }
+
+  const existingList = existing || [];
+  const existingIds = new Set(existingList.map((doc) => doc.metadata?.uuid));
+
+  if (typeof newDocs === "string") {
+    const docId = uuidv4();
+    return [
+      ...existingList,
+      { pageContent: newDocs, metadata: { uuid: docId } },
+    ];
+  }
+
+  const newList: Document[] = [];
+  if (Array.isArray(newDocs)) {
+    for (const item of newDocs) {
+      if (typeof item === "string") {
+        const itemId = uuidv4();
+        newList.push({ pageContent: item, metadata: { uuid: itemId } });
+        existingIds.add(itemId);
+      } else if (typeof item === "object") {
+        const metadata = (item as Document).metadata ?? {};
+        let itemId = metadata.uuid ?? uuidv4();
+
+        if (!existingIds.has(itemId)) {
+          if ("pageContent" in item) {
+            // It's a Document-like object
+            newList.push({
+              ...(item as Document),
+              metadata: { ...metadata, uuid: itemId },
+            });
+          } else {
+            // It's a generic object, treat it as metadata
+            newList.push({
+              pageContent: "",
+              metadata: { ...(item as { [key: string]: any }), uuid: itemId },
+            });
           }
-          coerced.push(doc);
+          existingIds.add(itemId);
         }
       }
-      return coerced;
     }
-    // Returns existing documents if no valid update is provided
-    return existing || [];
   }
+
+  return [...existingList, ...newList];
+}

@@ -6,7 +6,7 @@ import { reduceDocs } from "../../shared/state.js";
  * Private state for the retrieve_documents node in the researcher graph.
  */
 export const QueryStateAnnotation = Annotation.Root({
-  query: Annotation<string>()
+  query: Annotation<string>(),
 });
 
 /**
@@ -23,7 +23,10 @@ export const ResearcherStateAnnotation = Annotation.Root({
    */
   queries: Annotation<string[]>({
     default: () => [],
-    reducer: (existing: string[], newQueries: string[]) => [...existing, ...newQueries]
+    reducer: (existing: string[], newQueries: string[]) => [
+      ...existing,
+      ...newQueries,
+    ],
   }),
 
   /**
@@ -34,8 +37,8 @@ export const ResearcherStateAnnotation = Annotation.Root({
     Document[] | { [key: string]: any }[] | string[] | string | "delete"
   >({
     default: () => [],
-    reducer: reduceDocs
-  })
+    reducer: reduceDocs,
+  }),
 
   // Feel free to add additional attributes to your state as needed.
   // Common examples include retrieved documents, extracted entities, API connections, etc.

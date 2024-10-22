@@ -15,17 +15,19 @@ import { loadChatModel } from "../../shared/utils.js";
 
 async function generateQueries(
   state: typeof ResearcherStateAnnotation.State,
-  config: RunnableConfig
+  config: RunnableConfig,
 ): Promise<typeof ResearcherStateAnnotation.Update> {
   const Response = z.object({
-    queries: z.array(z.string())
+    queries: z.array(z.string()),
   });
 
   const configuration = ensureAgentConfiguration(config);
-  const model = (await loadChatModel(configuration.queryModel)).withStructuredOutput(Response);
+  const model = (
+    await loadChatModel(configuration.queryModel)
+  ).withStructuredOutput(Response);
   const messages: { role: string; content: string }[] = [
     { role: "system", content: configuration.generateQueriesSystemPrompt },
-    { role: "human", content: state.question }
+    { role: "human", content: state.question },
   ];
   const response = await model.invoke(messages);
   return { queries: response.queries };
@@ -33,32 +35,31 @@ async function generateQueries(
 
 async function retrieveDocuments(
   state: typeof QueryStateAnnotation.State,
-  config: RunnableConfig
+  config: RunnableConfig,
 ): Promise<typeof ResearcherStateAnnotation.Update> {
   const retriever = await makeRetriever(config);
   const response = await retriever.invoke(state.query, config);
   return { documents: response };
 }
 
-function retrieveInParallel(state: typeof ResearcherStateAnnotation.State): Send[] {
-  return state.queries.map((query: string) => new Send(
-    "retrieveDocuments",
-    { query }
-  ));
+function retrieveInParallel(
+  state: typeof ResearcherStateAnnotation.State,
+): Send[] {
+  return state.queries.map(
+    (query: string) => new Send("retrieveDocuments", { query }),
+  );
 }
 
 // Define the graph
 const builder = new StateGraph({
-  stateSchema: ResearcherStateAnnotation
+  stateSchema: ResearcherStateAnnotation,
 })
   .addNode("generateQueries", generateQueries)
   .addNode("retrieveDocuments", retrieveDocuments)
   .addEdge(START, "generateQueries")
-  .addConditionalEdges(
-    "generateQueries",
-    retrieveInParallel,
-    ["retrieveDocuments"]
-  )
+  .addConditionalEdges("generateQueries", retrieveInParallel, [
+    "retrieveDocuments",
+  ])
   .addEdge("retrieveDocuments", END);
 
 // Compile into a graph object that you can invoke and deploy.

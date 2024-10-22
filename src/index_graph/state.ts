@@ -18,8 +18,8 @@ export const IndexStateAnnotation = Annotation.Root({
     Document[] | { [key: string]: any }[] | string[] | string | "delete"
   >({
     default: () => [],
-    reducer: reduceDocs
-  })
+    reducer: reduceDocs,
+  }),
 });
 
 export type IndexStateType = typeof IndexStateAnnotation.State;

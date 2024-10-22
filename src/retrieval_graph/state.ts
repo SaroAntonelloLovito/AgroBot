@@ -33,7 +33,7 @@ export const InputStateAnnotation = Annotation.Root({
 
 type Router = {
   logic: string;
-  type: 'more-info' | 'langchain' | 'general';
+  type: "more-info" | "langchain" | "general";
 };
 
 /**
@@ -48,7 +48,10 @@ export const AgentStateAnnotation = Annotation.Root({
    */
   router: Annotation<Router>({
     default: () => ({ type: "general", logic: "" }),
-    reducer: (existing: Router, newRouter: Router) => ({ ...existing, ...newRouter })
+    reducer: (existing: Router, newRouter: Router) => ({
+      ...existing,
+      ...newRouter,
+    }),
   }),
 
   /**
@@ -67,10 +70,9 @@ export const AgentStateAnnotation = Annotation.Root({
   >({
     default: () => [],
     // @ts-ignore
-    reducer: reduceDocs
-  })
+    reducer: reduceDocs,
+  }),
 
   // Additional attributes can be added here as needed
   // Examples might include retrieved documents, extracted entities, API connections, etc.
 });
-

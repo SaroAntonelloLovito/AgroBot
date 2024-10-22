@@ -27,14 +27,14 @@ export const IndexConfigurationAnnotation = Annotation.Root({
  * @returns An instance of typeof IndexConfigurationAnnotation.State with the specified configuration.
  */
 export function ensureIndexConfiguration(
-    config: RunnableConfig | undefined = undefined,
-  ): typeof IndexConfigurationAnnotation.State {
-    const configurable = (config?.configurable || {}) as Partial<
-      typeof IndexConfigurationAnnotation.State
-    >;
-    const baseConfig = ensureBaseConfiguration(config);
-    return {
-      ...baseConfig,
-      docsFile: configurable.docsFile || DEFAULT_DOCS_FILE,
-    };
-  }
+  config: RunnableConfig | undefined = undefined,
+): typeof IndexConfigurationAnnotation.State {
+  const configurable = (config?.configurable || {}) as Partial<
+    typeof IndexConfigurationAnnotation.State
+  >;
+  const baseConfig = ensureBaseConfiguration(config);
+  return {
+    ...baseConfig,
+    docsFile: configurable.docsFile || DEFAULT_DOCS_FILE,
+  };
+}
