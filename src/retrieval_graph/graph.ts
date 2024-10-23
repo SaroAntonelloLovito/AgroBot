@@ -1,4 +1,9 @@
-import { StateGraph, END, START } from "@langchain/langgraph";
+import {
+  StateGraph,
+  END,
+  START,
+  LangGraphRunnableConfig,
+} from "@langchain/langgraph";
 import { z } from "zod";
 import { RunnableConfig } from "@langchain/core/runnables";
 
@@ -105,8 +110,12 @@ async function createResearchPlan(
 
 async function conductResearch(
   state: typeof AgentStateAnnotation.State,
+  config: LangGraphRunnableConfig,
 ): Promise<typeof AgentStateAnnotation.Update> {
-  const result = await researcherGraph.invoke({ question: state.steps[0] });
+  const result = await researcherGraph.invoke(
+    { question: state.steps[0] },
+    { ...config },
+  );
   return { documents: result.documents, steps: state.steps.slice(1) };
 }
 
@@ -145,7 +154,7 @@ const builder = new StateGraph(
   .addNode("askForMoreInfo", askForMoreInfo)
   .addNode("respondToGeneralQuery", respondToGeneralQuery)
   .addNode("createResearchPlan", createResearchPlan)
-  .addNode("conductResearch", conductResearch)
+  .addNode("conductResearch", conductResearch, { subgraphs: [researcherGraph] })
   .addNode("respond", respond)
   .addEdge(START, "analyzeAndRouteQuery")
   .addConditionalEdges("analyzeAndRouteQuery", routeQuery, [
