@@ -1272,13 +1272,23 @@
   dependencies:
     uuid "^10.0.0"
 
-"@langchain/langgraph@^0.2.17":
-  version "0.2.17"
-  resolved "https://registry.yarnpkg.com/@langchain/langgraph/-/langgraph-0.2.17.tgz#e9b0e5da8e7d6d0a93d415dbdd6be797effbdd19"
-  integrity sha512-BeFs7eO5Rg0BHH03HBjxV2BYZrAsaYKFBCKhTYvAr9x5EQ8jGrV2h7tZOZJk2T7wT2QSF+2AwpFXkwbQBT1ohQ==
+"@langchain/langgraph-sdk@~0.0.20":
+  version "0.0.22"
+  resolved "https://registry.yarnpkg.com/@langchain/langgraph-sdk/-/langgraph-sdk-0.0.22.tgz#e0ed92e5e59df16a533b34611987bd627f54d524"
+  integrity sha512-+VWA4l6cgUEpxCZwW2aJLGpTYXTO1LYUjrv53Ru9i3ahEHrC7fu9BJL198WdDL6Pk+Qt2pyNkq/30HoKUKFTfQ==
+  dependencies:
+    "@types/json-schema" "^7.0.15"
+    p-queue "^6.6.2"
+    p-retry "4"
+    uuid "^9.0.0"
+
+"@langchain/langgraph@^0.2.20":
+  version "0.2.20"
+  resolved "https://registry.yarnpkg.com/@langchain/langgraph/-/langgraph-0.2.20.tgz#0773b9262351ed07a125d6ae6188def519488d3c"
+  integrity sha512-MMD4G++gHs+5OO5Uu75gduskTboJ8Q7ZAwzd1s64a1Y/38pdgDqJdYRHRCGpx8eeCuKhsRzV2Sssnl5lujfj8w==
   dependencies:
     "@langchain/langgraph-checkpoint" "~0.0.10"
-    double-ended-queue "^2.1.0-0"
+    "@langchain/langgraph-sdk" "~0.0.20"
     uuid "^10.0.0"
     zod "^3.23.8"
 
@@ -1956,7 +1966,7 @@
     expect "^29.0.0"
     pretty-format "^29.0.0"
 
-"@types/json-schema@^7.0.9":
+"@types/json-schema@^7.0.15", "@types/json-schema@^7.0.9":
   version "7.0.15"
   resolved "https://registry.yarnpkg.com/@types/json-schema/-/json-schema-7.0.15.tgz#596a1747233694d50f6ad8a7869fcb6f56cf5841"
   integrity sha512-5+fP8P8MFNC+AyZCDxrB2pkZFPGzqQWUzpSeuuVLvm8VMcorNYavBqoFcxK8bQz4Qsbn4oUEEem4wDLfcysGHA==
@@ -2750,11 +2760,6 @@ dotenv@^16.4.5:
   version "16.4.5"
   resolved "https://registry.yarnpkg.com/dotenv/-/dotenv-16.4.5.tgz#cdd3b3b604cb327e286b4762e13502f717cb099f"
   integrity sha512-ZmdL2rui+eB2YwhsWzjInR8LldtZHGDoQ1ugH85ppHKwpUHL7j7rN0Ti9NCnGiQbhaZ11FpR+7ao1dNsmduNUg==
-
-double-ended-queue@^2.1.0-0:
-  version "2.1.0-0"
-  resolved "https://registry.yarnpkg.com/double-ended-queue/-/double-ended-queue-2.1.0-0.tgz#103d3527fd31528f40188130c841efdd78264e5c"
-  integrity sha512-+BNfZ+deCo8hMNpDqDnvT+c0XpJ5cUa6mqYq89bho2Ifze4URTqRkcwR399hWoTrTkbZ/XJYDgP6rc7pRgffEQ==
 
 ejs@^3.1.10:
   version "3.1.10"
@@ -5300,7 +5305,7 @@ uuid@^10.0.0:
   resolved "https://registry.yarnpkg.com/uuid/-/uuid-10.0.0.tgz#5a95aa454e6e002725c79055fd42aaba30ca6294"
   integrity sha512-8XkAphELsDnEGrDxUOHB3RGvXz6TeuYSGEZBOjtTtPm2lwhGBjLgOzLHB63IUWfBpNucQjND6d3AOudO+H3RWQ==
 
-uuid@^9.0.1:
+uuid@^9.0.0, uuid@^9.0.1:
   version "9.0.1"
   resolved "https://registry.yarnpkg.com/uuid/-/uuid-9.0.1.tgz#e188d4c8853cc722220392c424cd637f32293f30"
   integrity sha512-b+1eJOlsR9K8HJpow9Ok3fiWOWSIcIzXodvv0rQjVoOVNpWMpxf1wZNpt4y9h10odCNrqnYp1OBzRktckBe3sA==
