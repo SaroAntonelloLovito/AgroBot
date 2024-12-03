@@ -1,106 +1,177 @@
-import { RunnableConfig } from "@langchain/core/runnables";
-import { StateGraph } from "@langchain/langgraph";
 import {
-  ConfigurationAnnotation,
-  ensureConfiguration,
-} from "./configuration.js";
-import { StateAnnotation, InputStateAnnotation } from "./state.js";
-import { formatDocs, getMessageText, loadChatModel } from "./utils.js";
+  StateGraph,
+  END,
+  START,
+  LangGraphRunnableConfig,
+} from "@langchain/langgraph";
 import { z } from "zod";
-import { makeRetriever } from "./retrieval.js";
-// Define the function that calls the model
+import { RunnableConfig } from "@langchain/core/runnables";
 
-const SearchQuery = z.object({
-  query: z.string().describe("Search the indexed documents for a query."),
-});
+import {
+  AgentConfigurationAnnotation,
+  ensureAgentConfiguration,
+} from "./configuration.js";
+import { graph as researcherGraph } from "./researcher_graph/graph.js";
+import { AgentStateAnnotation, InputStateAnnotation } from "./state.js";
+import { formatDocs, loadChatModel } from "../shared/utils.js";
 
-async function generateQuery(
-  state: typeof StateAnnotation.State,
-  config?: RunnableConfig,
-): Promise<typeof StateAnnotation.Update> {
-  const messages = state.messages;
-  if (messages.length === 1) {
-    // It's the first user question. We will use the input directly to search.
-    const humanInput = getMessageText(messages[messages.length - 1]);
-    return { queries: [humanInput] };
+async function analyzeAndRouteQuery(
+  state: typeof AgentStateAnnotation.State,
+  config: RunnableConfig,
+): Promise<typeof AgentStateAnnotation.Update> {
+  const configuration = ensureAgentConfiguration(config);
+  const model = await loadChatModel(configuration.queryModel);
+  const messages = [
+    { role: "system", content: configuration.routerSystemPrompt },
+    ...state.messages,
+  ];
+  const Router = z
+    .object({
+      logic: z.string(),
+      type: z.enum(["more-info", "langchain", "general"]),
+    })
+    .describe("Classify user query.");
+  const response = await model.withStructuredOutput(Router).invoke(messages);
+  return { router: response };
+}
+
+function routeQuery(
+  state: typeof AgentStateAnnotation.State,
+): "createResearchPlan" | "askForMoreInfo" | "respondToGeneralQuery" {
+  const type = state.router.type;
+  if (type === "langchain") {
+    return "createResearchPlan";
+  } else if (type === "more-info") {
+    return "askForMoreInfo";
+  } else if (type === "general") {
+    return "respondToGeneralQuery";
   } else {
-    const configuration = ensureConfiguration(config);
-    // Feel free to customize the prompt, model, and other logic!
-    const systemMessage = configuration.querySystemPromptTemplate
-      .replace("{queries}", (state.queries || []).join("\n- "))
-      .replace("{systemTime}", new Date().toISOString());
-
-    const messageValue = [
-      { role: "system", content: systemMessage },
-      ...state.messages,
-    ];
-    const model = (
-      await loadChatModel(configuration.responseModel)
-    ).withStructuredOutput(SearchQuery);
-
-    const generated = await model.invoke(messageValue);
-    return {
-      queries: [generated.query],
-    };
+    throw new Error(`Unknown router type ${type}`);
   }
 }
 
-async function retrieve(
-  state: typeof StateAnnotation.State,
+async function askForMoreInfo(
+  state: typeof AgentStateAnnotation.State,
   config: RunnableConfig,
-): Promise<typeof StateAnnotation.Update> {
-  const query = state.queries[state.queries.length - 1];
-  const retriever = await makeRetriever(config);
-  const response = await retriever.invoke(query);
-  return { retrievedDocs: response };
-}
-
-async function respond(
-  state: typeof StateAnnotation.State,
-  config: RunnableConfig,
-): Promise<typeof StateAnnotation.Update> {
-  /**
-   * Call the LLM powering our "agent".
-   */
-  const configuration = ensureConfiguration(config);
-
-  const model = await loadChatModel(configuration.responseModel);
-
-  const retrievedDocs = formatDocs(state.retrievedDocs);
-  // Feel free to customize the prompt, model, and other logic!
-  const systemMessage = configuration.responseSystemPromptTemplate
-    .replace("{retrievedDocs}", retrievedDocs)
-    .replace("{systemTime}", new Date().toISOString());
-  const messageValue = [
-    { role: "system", content: systemMessage },
+): Promise<typeof AgentStateAnnotation.Update> {
+  const configuration = ensureAgentConfiguration(config);
+  const model = await loadChatModel(configuration.queryModel);
+  const systemPrompt = configuration.moreInfoSystemPrompt.replace(
+    "{logic}",
+    state.router.logic,
+  );
+  const messages = [
+    { role: "system", content: systemPrompt },
     ...state.messages,
   ];
-  const response = await model.invoke(messageValue);
-  // We return a list, because this will get added to the existing list
+  const response = await model.invoke(messages);
   return { messages: [response] };
 }
 
-// Lay out the nodes and edges to define a graph
+async function respondToGeneralQuery(
+  state: typeof AgentStateAnnotation.State,
+  config: RunnableConfig,
+): Promise<typeof AgentStateAnnotation.Update> {
+  const configuration = ensureAgentConfiguration(config);
+  const model = await loadChatModel(configuration.queryModel);
+  const systemPrompt = configuration.generalSystemPrompt.replace(
+    "{logic}",
+    state.router.logic,
+  );
+  const messages = [
+    { role: "system", content: systemPrompt },
+    ...state.messages,
+  ];
+  const response = await model.invoke(messages);
+  return { messages: [response] };
+}
+
+async function createResearchPlan(
+  state: typeof AgentStateAnnotation.State,
+  config: RunnableConfig,
+): Promise<typeof AgentStateAnnotation.Update> {
+  const Plan = z
+    .object({
+      steps: z.array(z.string()),
+    })
+    .describe("Generate research plan.");
+
+  const configuration = ensureAgentConfiguration(config);
+  const model = (
+    await loadChatModel(configuration.queryModel)
+  ).withStructuredOutput(Plan);
+  const messages = [
+    { role: "system", content: configuration.researchPlanSystemPrompt },
+    ...state.messages,
+  ];
+  const response = await model.invoke(messages);
+  return { steps: response.steps, documents: "delete" };
+}
+
+async function conductResearch(
+  state: typeof AgentStateAnnotation.State,
+  config: LangGraphRunnableConfig,
+): Promise<typeof AgentStateAnnotation.Update> {
+  const result = await researcherGraph.invoke(
+    { question: state.steps[0] },
+    { ...config },
+  );
+  return { documents: result.documents, steps: state.steps.slice(1) };
+}
+
+function checkFinished(
+  state: typeof AgentStateAnnotation.State,
+): "conductResearch" | "respond" {
+  return state.steps && state.steps.length > 0 ? "conductResearch" : "respond";
+}
+
+async function respond(
+  state: typeof AgentStateAnnotation.State,
+  config: RunnableConfig,
+): Promise<typeof AgentStateAnnotation.Update> {
+  const configuration = ensureAgentConfiguration(config);
+  const model = await loadChatModel(configuration.responseModel);
+  // @ts-ignore
+  const context = formatDocs(state.documents);
+  const prompt = configuration.responseSystemPrompt.replace(
+    "{context}",
+    context,
+  );
+  const messages = [{ role: "system", content: prompt }, ...state.messages];
+  const response = await model.invoke(messages);
+  return { messages: [response] };
+}
+
+// Define the graph
 const builder = new StateGraph(
   {
-    stateSchema: StateAnnotation,
-    // The only input field is the user
+    stateSchema: AgentStateAnnotation,
     input: InputStateAnnotation,
   },
-  ConfigurationAnnotation,
+  AgentConfigurationAnnotation,
 )
-  .addNode("generateQuery", generateQuery)
-  .addNode("retrieve", retrieve)
+  .addNode("analyzeAndRouteQuery", analyzeAndRouteQuery)
+  .addNode("askForMoreInfo", askForMoreInfo)
+  .addNode("respondToGeneralQuery", respondToGeneralQuery)
+  .addNode("createResearchPlan", createResearchPlan)
+  .addNode("conductResearch", conductResearch, { subgraphs: [researcherGraph] })
   .addNode("respond", respond)
-  .addEdge("__start__", "generateQuery")
-  .addEdge("generateQuery", "retrieve")
-  .addEdge("retrieve", "respond");
+  .addEdge(START, "analyzeAndRouteQuery")
+  .addConditionalEdges("analyzeAndRouteQuery", routeQuery, [
+    "askForMoreInfo",
+    "respondToGeneralQuery",
+    "createResearchPlan",
+  ])
+  .addEdge("createResearchPlan", "conductResearch")
+  .addConditionalEdges("conductResearch", checkFinished, [
+    "conductResearch",
+    "respond",
+  ])
+  .addEdge("askForMoreInfo", END)
+  .addEdge("respondToGeneralQuery", END)
+  .addEdge("respond", END);
 
-// Finally, we compile it!
-// This compiles it into a graph you can invoke and deploy.
-export const graph = builder.compile({
-  interruptBefore: [], // if you want to update the state before calling the tools
-  interruptAfter: [],
-});
-
-graph.name = "Retrieval Graph"; // Customizes the name displayed in LangSmith
+// Compile into a graph object that you can invoke and deploy.
+export const graph = builder
+  .compile()
+  .withConfig({ runName: "RetrievalGraph" });

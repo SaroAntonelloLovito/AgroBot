@@ -5,14 +5,14 @@ import { VectorStoreRetriever } from "@langchain/core/vectorstores";
 import { MongoDBAtlasVectorSearch } from "@langchain/mongodb";
 import { PineconeStore } from "@langchain/pinecone";
 import { MongoClient } from "mongodb";
-import { ensureConfiguration } from "./configuration.js";
+import { ensureBaseConfiguration } from "./configuration.js";
 import { Pinecone as PineconeClient } from "@pinecone-database/pinecone";
 import { Embeddings } from "@langchain/core/embeddings";
 import { CohereEmbeddings } from "@langchain/cohere";
 import { OpenAIEmbeddings } from "@langchain/openai";
 
 async function makeElasticRetriever(
-  configuration: ReturnType<typeof ensureConfiguration>,
+  configuration: ReturnType<typeof ensureBaseConfiguration>,
   embeddingModel: Embeddings,
 ): Promise<VectorStoreRetriever> {
   const elasticUrl = process.env.ELASTICSEARCH_URL;
@@ -49,17 +49,11 @@ async function makeElasticRetriever(
     client,
     indexName: "langchain_index",
   });
-  const searchKwargs = configuration.searchKwargs || {};
-  const filter = {
-    ...searchKwargs,
-    user_id: configuration.userId,
-  };
-
-  return vectorStore.asRetriever({ filter });
+  return vectorStore.asRetriever({ filter: configuration.searchKwargs || {} });
 }
 
 async function makePineconeRetriever(
-  configuration: ReturnType<typeof ensureConfiguration>,
+  configuration: ReturnType<typeof ensureBaseConfiguration>,
   embeddingModel: Embeddings,
 ): Promise<VectorStoreRetriever> {
   const indexName = process.env.PINECONE_INDEX_NAME;
@@ -72,24 +66,18 @@ async function makePineconeRetriever(
     pineconeIndex,
   });
 
-  const searchKwargs = configuration.searchKwargs || {};
-  const filter = {
-    ...searchKwargs,
-    user_id: configuration.userId,
-  };
-
-  return vectorStore.asRetriever({ filter });
+  return vectorStore.asRetriever({ filter: configuration.searchKwargs || {} });
 }
 
 async function makeMongoDBRetriever(
-  configuration: ReturnType<typeof ensureConfiguration>,
+  configuration: ReturnType<typeof ensureBaseConfiguration>,
   embeddingModel: Embeddings,
 ): Promise<VectorStoreRetriever> {
   if (!process.env.MONGODB_URI) {
     throw new Error("MONGODB_URI environment variable is not defined");
   }
   const client = new MongoClient(process.env.MONGODB_URI);
-  const namespace = `langgraph_retrieval_agent.${configuration.userId}`;
+  const namespace = `langgraph_retrieval_agent.default`;
   const [dbName, collectionName] = namespace.split(".");
   const collection = client.db(dbName).collection(collectionName);
   const vectorStore = new MongoDBAtlasVectorSearch(embeddingModel, {
@@ -98,12 +86,7 @@ async function makeMongoDBRetriever(
     embeddingKey: "embedding",
     indexName: "vector_index",
   });
-  const searchKwargs = { ...configuration.searchKwargs };
-  searchKwargs.preFilter = {
-    ...searchKwargs.preFilter,
-    user_id: { $eq: configuration.userId },
-  };
-  return vectorStore.asRetriever({ filter: searchKwargs });
+  return vectorStore.asRetriever({ filter: configuration.searchKwargs || {} });
 }
 
 function makeTextEmbeddings(modelName: string): Embeddings {
@@ -132,13 +115,8 @@ function makeTextEmbeddings(modelName: string): Embeddings {
 export async function makeRetriever(
   config: RunnableConfig,
 ): Promise<VectorStoreRetriever> {
-  const configuration = ensureConfiguration(config);
+  const configuration = ensureBaseConfiguration(config);
   const embeddingModel = makeTextEmbeddings(configuration.embeddingModel);
-
-  const userId = configuration.userId;
-  if (!userId) {
-    throw new Error("Please provide a valid user_id in the configuration.");
-  }
 
   switch (configuration.retrieverProvider) {
     case "elastic":
