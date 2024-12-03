@@ -4,7 +4,7 @@ import { RunnableConfig } from "@langchain/core/runnables";
 import { ensureBaseConfiguration } from "../shared/configuration.js";
 
 // This file contains sample documents to index, based on the following LangChain and LangGraph documentation pages:
-// - https://python.langchain.com/v0.3/docs/concepts/
+// - https://python.langchain.com/docs/concepts/
 // - https://langchain-ai.github.io/langgraph/concepts/low_level/
 const DEFAULT_DOCS_FILE = "src/sample_docs.json";
 
@@ -27,7 +27,7 @@ export const IndexConfigurationAnnotation = Annotation.Root({
  * @returns An instance of typeof IndexConfigurationAnnotation.State with the specified configuration.
  */
 export function ensureIndexConfiguration(
-  config: RunnableConfig | undefined = undefined,
+  config: RunnableConfig,
 ): typeof IndexConfigurationAnnotation.State {
   const configurable = (config?.configurable || {}) as Partial<
     typeof IndexConfigurationAnnotation.State

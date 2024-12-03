@@ -72,7 +72,7 @@ export const AgentConfigurationAnnotation = Annotation.Root({
  * @returns An instance of typeof ConfigurationAnnotation.State with the specified configuration.
  */
 export function ensureAgentConfiguration(
-  config: RunnableConfig | undefined = undefined,
+  config: RunnableConfig,
 ): typeof AgentConfigurationAnnotation.State {
   const configurable = (config?.configurable || {}) as Partial<
     typeof AgentConfigurationAnnotation.State

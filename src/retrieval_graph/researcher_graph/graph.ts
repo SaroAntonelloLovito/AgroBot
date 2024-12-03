@@ -63,5 +63,6 @@ const builder = new StateGraph({
   .addEdge("retrieveDocuments", END);
 
 // Compile into a graph object that you can invoke and deploy.
-export const graph = builder.compile();
-graph.name = "ResearcherGraph";
+export const graph = builder
+  .compile()
+  .withConfig({ runName: "ResearcherGraph" });
