@@ -10,9 +10,9 @@ This is a starter project to help you get started with developing a RAG research
 
 This project has three graphs:
 
-* an "index" graph (`src/index_graph/graph.py`)
-* a "retrieval" graph (`src/retrieval_graph/graph.py`)
-* a "researcher" subgraph (part of the retrieval graph) (`src/researcher_graph/graph.py`)
+* an "index" graph (`src/index_graph/graph.ts`)
+* a "retrieval" graph (`src/retrieval_graph/graph.ts`)
+* a "researcher" subgraph (part of the retrieval graph) (`src/retrieval_graph/researcher_graph/graph.ts`)
 
 The index graph takes in document objects indexes them.
 
@@ -261,14 +261,14 @@ You can customize this retrieval agent template in several ways:
 
 1. **Customize the response generation**: You can modify the `response_system_prompt` to change how the agent formulates its responses. This allows you to adjust the agent's personality or add specific instructions for answer generation.
 
-1. **Modify prompts**: Update the prompts used for user query routing, research planning, query generation and more in `src/retrieval_graph/prompts.py` to better suit your specific use case or to improve the agent's performance. You can also modify these directly in LangGraph Studio. For example, you can:
+1. **Modify prompts**: Update the prompts used for user query routing, research planning, query generation and more in `src/retrieval_graph/prompts.ts` to better suit your specific use case or to improve the agent's performance. You can also modify these directly in LangGraph Studio. For example, you can:
 
   * Modify system prompt for creating research plan (`research_plan_system_prompt`)
   * Modify system prompt for generating search queries based on the research plan (`generate_queries_system_prompt`)
 
 1. **Change the language model**: Update the `response_model` in the configuration to use different language models for response generation. Options include various Claude models from Anthropic, as well as models from other providers like Fireworks AI.
 
-1. **Extend the graph**: You can add new nodes or modify existing ones in the `src/retrieval_graph/graph.py` file to introduce additional processing steps or decision points in the agent's workflow.
+1. **Extend the graph**: You can add new nodes or modify existing ones in the `src/retrieval_graph/graph.ts` file to introduce additional processing steps or decision points in the agent's workflow.
 
 1. **Add tools**: Implement tools to expand the researcher agent's capabilities beyond simple retrieval generation.
 
