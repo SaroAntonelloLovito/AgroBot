@@ -18,6 +18,11 @@ export const IndexConfigurationAnnotation = Annotation.Root({
    * Path to a JSON file containing default documents to index.
    */
   docsFile: Annotation<string>,
+
+  /**
+   * The retriever provider to use.
+   */
+  retrieverProvider: Annotation<"mongodb" | "elastic" | "elastic-local" | "pinecone">,
 });
 
 /**
@@ -36,5 +41,6 @@ export function ensureIndexConfiguration(
   return {
     ...baseConfig,
     docsFile: configurable.docsFile || DEFAULT_DOCS_FILE,
+    retrieverProvider: "mongodb"
   };
 }

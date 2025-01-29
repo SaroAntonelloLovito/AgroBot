@@ -48,7 +48,7 @@ export function ensureBaseConfiguration(
   return {
     embeddingModel:
       configurable.embeddingModel || "openai/text-embedding-3-small",
-    retrieverProvider: configurable.retrieverProvider || "elastic-local",
+    retrieverProvider: configurable.retrieverProvider || "mongodb",
     searchKwargs: configurable.searchKwargs || {},
   };
 }

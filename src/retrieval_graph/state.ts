@@ -11,15 +11,6 @@ export const InputStateAnnotation = Annotation.Root({
    * Messages track the primary execution state of the agent.
    * @type {BaseMessage[]}
    * @description
-   * Typically accumulates a pattern of Human/AI/Human/AI messages. If combined with a
-   * tool-calling ReAct agent pattern, it may follow this sequence:
-   * 1. HumanMessage - user input
-   * 2. AIMessage with .tool_calls - agent picking tool(s) to use
-   * 3. ToolMessage(s) - responses (or errors) from executed tools
-   *    (... repeat steps 2 and 3 as needed ...)
-   * 4. AIMessage without .tool_calls - agent's unstructured response to user
-   * 5. HumanMessage - user's next conversational turn
-   *    (... repeat steps 2-5 as needed ...)
    */
   ...MessagesAnnotation.spec,
 });
@@ -28,12 +19,12 @@ export const InputStateAnnotation = Annotation.Root({
  * Classifies user query.
  * @typedef {Object} Router
  * @property {string} logic - The logic behind the classification.
- * @property {'more-info' | 'langchain' | 'general'} type - The type of the query.
+ * @property {'more-info' | 'agriculture' | 'general'} type - The type of the query.
  */
 
 type Router = {
   logic: string;
-  type: "more-info" | "langchain" | "general";
+  type: "more-info" | "agriculture" | "general";
 };
 
 /**

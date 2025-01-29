@@ -28,7 +28,7 @@ async function analyzeAndRouteQuery(
   const Router = z
     .object({
       logic: z.string(),
-      type: z.enum(["more-info", "langchain", "general"]),
+      type: z.enum(["more-info", "agriculture", "general"]),
     })
     .describe("Classify user query.");
   const response = await model.withStructuredOutput(Router).invoke(messages);
@@ -39,7 +39,7 @@ function routeQuery(
   state: typeof AgentStateAnnotation.State,
 ): "createResearchPlan" | "askForMoreInfo" | "respondToGeneralQuery" {
   const type = state.router.type;
-  if (type === "langchain") {
+  if (type === "agriculture") {
     return "createResearchPlan";
   } else if (type === "more-info") {
     return "askForMoreInfo";
