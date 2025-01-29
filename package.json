@@ -1,10 +1,10 @@
 {
-  "name": "retrieval-graph",
+  "name": "agrobot-agent",
   "version": "0.0.1",
-  "description": "A starter template containing an example retrieval agent.",
+  "description": "AI Agent to ask Agricultural question.",
   "main": "src/retrieval_graph/graph.ts",
-  "author": "Your Name",
-  "license": "MIT",
+  "author": "SaroAntonelloLovito",
+  "license": "Apache-2.0",
   "private": true,
   "type": "module",
   "packageManager": "yarn@1.22.22",
@@ -14,7 +14,9 @@
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --testPathPattern=\\.test\\.ts$ --testPathIgnorePatterns=\\.int\\.test\\.ts$",
     "test:int": "node --experimental-vm-modules node_modules/jest/bin/jest.js --testPathPattern=\\.int\\.test\\.ts$",
     "lint": "eslint src",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "start": "node --loader ts-node/esm src/index.ts",
+    "dev": "node --loader ts-node/esm src/index.ts"
   },
   "dependencies": {
     "@elastic/elasticsearch": "^8.15.0",
