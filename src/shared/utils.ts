@@ -1,7 +1,7 @@
 import { Document } from "langchain/document";
-
 import { BaseChatModel } from "@langchain/core/language_models/chat_models";
 import { initChatModel } from "langchain/chat_models/universal";
+import { BaseMessage } from "@langchain/core/messages";
 
 export function formatDoc(doc: Document): string {
   const metadata = doc.metadata || {};
@@ -38,5 +38,18 @@ export async function loadChatModel(
     const provider = fullySpecifiedName.slice(0, index);
     const model = fullySpecifiedName.slice(index + 1);
     return await initChatModel(model, { modelProvider: provider });
+  }
+}
+
+export function getMessageText(msg: BaseMessage): string {
+  /** Get the text content of a message. */
+  const content = msg.content;
+  if (typeof content === "string") {
+    return content;
+  } else {
+    const txts = (content as any[]).map((c) =>
+      typeof c === "string" ? c : c.text || "",
+    );
+    return txts.join("").trim();
   }
 }

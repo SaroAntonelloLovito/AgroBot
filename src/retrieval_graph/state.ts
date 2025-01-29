@@ -1,5 +1,7 @@
 import { Annotation, MessagesAnnotation } from "@langchain/langgraph";
+import { Document } from "@langchain/core/documents";
 import { reduceDocs } from "../shared/state.js";
+import { BaseMessage } from "@langchain/core/messages";
 
 /**
  * Represents the input state for the agent.
@@ -12,7 +14,13 @@ export const InputStateAnnotation = Annotation.Root({
    * @type {BaseMessage[]}
    * @description
    */
-  ...MessagesAnnotation.spec,
+  messages: Annotation<BaseMessage[]>({
+    default: () => [],
+    reducer: (existing: BaseMessage[], newMessages: BaseMessage[]) => [
+      ...existing,
+      ...newMessages,
+    ],
+  }),
 });
 
 /**
@@ -62,6 +70,15 @@ export const AgentStateAnnotation = Annotation.Root({
     default: () => [],
     // @ts-ignore
     reducer: reduceDocs,
+  }),
+
+  memory: Annotation<BaseMessage[]>({
+    default: () => [],
+    reducer: (existing: BaseMessage[], newMessages: BaseMessage[]) => {
+      const windowSize = 10; // Keep last 10 messages
+      const allMessages = [...existing, ...newMessages];
+      return allMessages.slice(-windowSize);
+    },
   }),
 
   // Additional attributes can be added here as needed

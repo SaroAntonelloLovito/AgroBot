@@ -2,7 +2,6 @@ import { graph as retrievalGraph } from "./retrieval_graph/graph.js";
 import { graph as indexGraph } from "./index_graph/graph.js";
 import dotenv from "dotenv";
 import readline from 'readline';
-
 // Load environment variables
 dotenv.config();
 
@@ -25,7 +24,7 @@ async function chat() {
     output: process.stdout
   });
 
-  const messages = [];
+  const memory: { role: string; content: string }[] = [];
   console.log("🌱 AgroBot initialized. Ask me anything about agriculture! (type 'exit' to quit)");
 
   let isRunning = true;
@@ -39,13 +38,16 @@ async function chat() {
       continue;
     }
 
-    messages.push({ role: "human", content: input });
+    const currentMessage = { role: "human", content: input };
+    memory.push(currentMessage);
 
     try {
-      const result = await retrievalGraph.invoke({ messages });
+      const result = await retrievalGraph.invoke({ 
+        messages: memory.slice(-10) // Keep last 10 messages for context
+      });
       const botResponse = result.messages[result.messages.length - 1].content;
       console.log('\nAgroBot: ' + botResponse);
-      messages.push({ role: "assistant", content: botResponse });
+      memory.push({ role: "assistant", content: botResponse });
     } catch (error) {
       console.error('Error:', error);
       console.log('\nAgroBot: Sorry, I encountered an error. Please try again.');

@@ -13,7 +13,7 @@ import {
 } from "./configuration.js";
 import { graph as researcherGraph } from "./researcher_graph/graph.js";
 import { AgentStateAnnotation, InputStateAnnotation } from "./state.js";
-import { formatDocs, loadChatModel } from "../shared/utils.js";
+import { formatDocs, loadChatModel, getMessageText } from "../shared/utils.js";
 
 async function analyzeAndRouteQuery(
   state: typeof AgentStateAnnotation.State,
@@ -131,15 +131,29 @@ async function respond(
 ): Promise<typeof AgentStateAnnotation.Update> {
   const configuration = ensureAgentConfiguration(config);
   const model = await loadChatModel(configuration.responseModel);
-  // @ts-ignore
   const context = formatDocs(state.documents);
-  const prompt = configuration.responseSystemPrompt.replace(
-    "{context}",
-    context,
-  );
-  const messages = [{ role: "system", content: prompt }, ...state.messages];
+  
+  // Include memory context in the prompt
+  const memoryContext = state.memory
+    .map(msg => `${msg._getType()}: ${getMessageText(msg)}`)
+    .join('\n');
+  
+  const prompt = configuration.responseSystemPrompt
+    .replace("{context}", context)
+    .replace("{memory}", memoryContext);
+  
+  const messages = [
+    { role: "system", content: prompt },
+    ...state.messages
+  ];
+  
   const response = await model.invoke(messages);
-  return { messages: [response] };
+  
+  // Update both messages and memory
+  return { 
+    messages: [response],
+    memory: [...state.memory, response]
+  };
 }
 
 // Define the graph
