@@ -23,43 +23,6 @@ AgroBot is an AI-powered chatbot designed to assist users with agriculture-relat
 - Hobbyists and gardeners looking for tips on plant care.
 - Organizations aiming to educate and support rural communities.
 
-## Getting Started
-
-### Frontend (React Application)
-
-The frontend application is located in the `app` directory. To start the frontend:
-
-```bash
-# Navigate to the app directory
-cd app
-
-# Install dependencies (if not already installed)
-yarn install
-
-# Start the development server
-yarn start
-```
-
-The frontend will be available at `http://localhost:3000`
-
-### Backend (Python Application)
-
-The backend application is located in the root directory. To start the backend:
-
-```bash
-# Install Python dependencies (if not already installed)
-pip install -r requirements.txt
-
-# Start the backend server
-python app.py
-```
-
-The backend API will be available at `http://localhost:5000`
-
-## Development
-
-To work on the full application, you'll need to run both the frontend and backend servers simultaneously. Open two terminal windows and follow the instructions above for each part of the application.
-
 ## Usage
 
 1. Start the application.
