@@ -33,7 +33,7 @@ AgroBot is an AI-powered chatbot designed to assist users with agriculture-relat
 
 - [x] Publish base version: only chatbot without RAG on streamline.
 - [x] Add RAG functionalities.
-- [ ] Track performances with langsmith.
+- [x] Track performances with langfuse.
 - [ ] Add more docs related to agricultural crops.
 - [ ] Track performances with beta testers.
 - [ ] Publish online.

@@ -1,23 +1,58 @@
 import { graph as retrievalGraph } from "./retrieval_graph/graph.js";
 import { graph as indexGraph } from "./index_graph/graph.js";
-import dotenv from "dotenv";
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { Langfuse } from 'langfuse';
+import dotenv from 'dotenv';
 import readline from 'readline';
+
 // Load environment variables
 dotenv.config();
 
+const langfuse = new Langfuse({
+  secretKey: process.env.LANGFUSE_SECRET_KEY ,
+  publicKey: process.env.LANGFUSE_PUBLIC_KEY ,
+  baseUrl: process.env.LANGFUSE_BASE_URL 
+});
+
 async function initializeSystem() {
+  const trace = langfuse.trace({
+    name: 'SystemInitialization',
+    metadata: { action: 'Indexing documents' },
+  });
+
   try {
     // First, index the documents
     await indexGraph.invoke({
       docs: [], // This will use the default docs from sample_docs.json
     });
     console.log("✅ Documents indexed successfully");
+
+    trace.update({
+      output: 'Documents indexed successfully',
+    });
   } catch (error) {
-    console.error("Error initializing:", error);
+    if (error && typeof error === 'object' && 'message' in error) {
+      trace.update({
+        output: error.message,
+      });
+      console.error("Error initializing:", error);
+    } else {
+      trace.update({
+        output: 'An unknown error occurred',
+      });
+      console.error("Error initializing:", error);
+    }
     process.exit(1);
   }
 }
 
+/**
+ * Initiates a command-line chat interface with AgroBot, allowing users to interact
+ * with an assistant specialized in agriculture-related queries. The conversation
+ * continues until the user types 'exit'. Messages are tracked in memory for context,
+ * and interactions are traced using Langfuse for monitoring purposes. Handles errors
+ * gracefully by informing the user and maintaining session continuity.
+ */
 async function chat() {
   const rl = readline.createInterface({
     input: process.stdin,
@@ -41,6 +76,11 @@ async function chat() {
     const currentMessage = { role: "human", content: input };
     memory.push(currentMessage);
 
+    const trace = langfuse.trace({
+      name: 'ChatInteraction',
+      metadata: { input: input },
+    });
+
     try {
       const result = await retrievalGraph.invoke({ 
         messages: memory.slice(-10) // Keep last 10 messages for context
@@ -48,8 +88,22 @@ async function chat() {
       const botResponse = result.messages[result.messages.length - 1].content;
       console.log('\nAgroBot: ' + botResponse);
       memory.push({ role: "assistant", content: botResponse });
+
+      trace.update({
+        output: botResponse,
+      });
     } catch (error) {
-      console.error('Error:', error);
+      if (error && typeof error === 'object' && 'message' in error) {
+        trace.update({
+          output: error.message,
+        });
+        console.error('Error:', error);
+      } else {
+        trace.update({
+          output: 'An unknown error occurred',
+        });
+        console.error('Error:', error);
+      }
       console.log('\nAgroBot: Sorry, I encountered an error. Please try again.');
     }
   }
@@ -59,7 +113,13 @@ async function chat() {
 if (import.meta.url === `file://${process.argv[1]}`) {
   initializeSystem()
     .then(() => chat())
-    .catch(console.error);
+    .catch((error) => {
+      if (error && typeof error === 'object' && 'message' in error) {
+        console.error("Error:", error);
+      } else {
+        console.error("An unknown error occurred");
+      }
+    });
 }
 
 // Export the graphs for use in other files
