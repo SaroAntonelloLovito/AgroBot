@@ -34,7 +34,14 @@ AgroBot is an AI-powered chatbot designed to assist users with agriculture-relat
 - [x] Publish base version: only chatbot without RAG on streamline.
 - [x] Add RAG functionalities.
 - [x] Track performances with langfuse.
-- [ ] Add more docs related to agricultural crops.
+- [ ] Implement Hybrid RAG with Knowledge Graph Integration:
+	•	Develop a knowledge graph for structured agricultural data (crops, diseases, treatments).
+	•	Maintain vector embeddings for detailed agricultural documents.
+	•	Combine both approaches for enhanced query responses.
+- [ ] Add more docs related to agricultural crops, with initial focus on grape cultivation:
+	•	Comprehensive information on grape varieties, growing conditions, and vineyard management.
+	•	Disease identification and treatment specific to viticulture.
+	•	Harvesting and post-harvest handling best practices.
 - [ ] Track performances with beta testers.
 - [ ] Publish online.
 - [ ] Add support for voice input/output.
